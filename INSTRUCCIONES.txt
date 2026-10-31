@@ -1,0 +1,44 @@
+PASO A PASO — MISIÓN 6
+
+CONTENIDO
+- seguimiento-personal.html: aplicación web.
+- supabase-schema.sql: esquema SQL local. No fue ejecutado ni modificado en Supabase.
+- manifest.webmanifest, service-worker.js e icons/: instalación PWA y shell estático offline.
+- tests/logic-audit.test.cjs: pruebas automatizadas de lógica, sincronización y PWA.
+
+REQUISITOS
+- Node.js para ejecutar las pruebas (sin paquetes npm adicionales).
+- Python 3 para servir la app localmente, o un hosting estático con HTTPS.
+- Supabase existente y disponible para autenticación/sincronización online. La URL y la clave pública publishable/anon están configuradas en el HTML; son configuración cliente pública, no incluyas service_role ni credenciales privadas.
+
+EJECUTAR EN PC
+1. Abre PowerShell en esta carpeta.
+2. Ejecuta: python -m http.server 8000
+   Alternativa: py -m http.server 8000
+3. Abre http://localhost:8000/seguimiento-personal.html
+4. Para uso real e instalación desde otros dispositivos, publica esta misma carpeta en un host HTTPS. El service worker no funciona desde file://.
+
+PRUEBAS
+Desde esta carpeta ejecuta: node --test tests/logic-audit.test.cjs
+El comando no necesita instalar dependencias. La sintaxis del JavaScript inline y service-worker.js se valida por separado con node --check (extrayendo primero el script inline del HTML).
+
+INSTALAR EN TELÉFONO
+- Android: abre la dirección HTTPS en Chrome, inicia sesión con conexión, espera a que cargue completamente y selecciona “Instalar aplicación”/“Añadir a pantalla de inicio” en el menú o en la invitación del navegador.
+- iPhone/iPad: abre la dirección HTTPS en Safari, toca Compartir y luego “Añadir a pantalla de inicio”. iOS no ofrece la misma instalación automática que Chrome Android.
+- La app debe visitarse online una vez para que el navegador instale y almacene el shell.
+
+MODO SIN CONEXIÓN Y LÍMITES
+- El service worker conserva el HTML, manifest, iconos y (si el CDN responde al instalar) el SDK público de Supabase. No almacena respuestas de Auth, REST, tokens ni datos de usuarios.
+- Con la sesión ya validada y la aplicación abierta, si se pierde la conexión, los cambios siguen guardándose en la caché local separada por user.id y quedan pendientes; al volver la conexión se intenta sincronizarlos.
+- Si se cierra/reinicia la app estando offline, el shell PWA puede abrir, pero no se valida una sesión desde Supabase sin conexión y por ello no se permite entrar a los datos del usuario. Esto conserva la autoridad de Supabase sobre la identidad. No se afirma soporte offline completo ni sincronización en segundo plano con la app cerrada.
+- Las alarmas del navegador tampoco son fiables con la app cerrada.
+
+ESTADO DE LA BASE Y SINCRONIZACIÓN
+- Las pruebas automatizadas usan dobles/mocks y validan lógica local; no prueban cuentas reales ni red de Supabase.
+- No se ejecutó SQL ni se modificó RLS o la configuración remota.
+- Las divergencias de datos se conservan y bloquean sincronización automática; la versión incluida no presenta un flujo interactivo para elegir/restaurar cada versión. Resuelve solo mediante un proceso revisado antes de borrar o reemplazar datos.
+
+ESTADO DE VERIFICACIÓN
+- No se ejecutó prueba visual interactiva en navegador ni instalación real en Android/iOS durante esta misión.
+- La entrega M5 no estaba presente en el directorio disponible. La base recuperable fue trabajo-mision-4; incluye parte sustancial de la protección de conflictos y la suite existente. No se modificaron respaldos ni entregas antiguas.
+- El comportamiento real de RLS, Auth, OAuth, recuperación, sincronización remota, instalación y offline debe verificarse manualmente con Supabase y dispositivos de prueba.
